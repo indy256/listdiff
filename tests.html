@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>List diff tests</title><script src="diff.js"></script><body><pre id="report">Running…</pre><iframe src="index.html" id="app" style="width:1200px;height:900px"></iframe><script>
+const checks = [];
+function check(name, condition) { checks.push(`${condition ? 'PASS' : 'FAIL'} ${name}`); }
+const settings = { trim: true, caseSensitive: true };
+const diff = ListDiff.compare('Apple\r\nBanana\r\nApple\n\nCherry', 'Banana\nPear', settings);
+check('set differences and union', JSON.stringify([diff.onlyA,diff.both,diff.onlyB,diff.union]) === JSON.stringify([['Apple','Cherry'],['Banana'],['Pear'],['Apple','Banana','Cherry','Pear']]));
+check('duplicate and blank counts', diff.left.count === 4 && diff.left.duplicates === 1);
+check('case sensitive', ListDiff.compare('Apple', 'apple', settings).both.length === 0);
+check('normalization and original preservation', ListDiff.compare('  HELLO   world ', 'hello world', {trim:true,spaces:true}).both[0] === '  HELLO   world ');
+check('leading zeros', ListDiff.compare('007\n000\n-002', '7\n0\n-2', {...settings,zeros:true}).both.length === 3);
+check('literal delimiters', ListDiff.compare('a,b,c', 'b;c', {...settings,splitA:'comma',splitB:'semicolon'}).both.length === 2);
+check('empty lists', ListDiff.compare('', '', settings).union.length === 0);
+check('numeric sorting puts text last', ListDiff.arrange(['x','10','2','-1'], {sort:'numeric'}).join(',') === '-1,2,10,x');
+check('descending numeric sorting', ListDiff.arrange(['x','10','2'], {sort:'numeric-desc'}).join(',') === '10,2,x');
+check('JSON escaping', JSON.parse(ListDiff.format(['"quoted"','a\\b'], 'json'))[0] === '"quoted"');
+check('HTML escaping', ListDiff.format(['<script>&'], 'html').includes('&lt;script&gt;&amp;'));
+check('CSV escaping', ListDiff.format(['a"b','c,d'], 'csv') === '"a""b","c,d"');
+document.getElementById('app').addEventListener('load', () => {
+ try {
+ const frame = document.getElementById('app'), doc = frame.contentDocument, win = frame.contentWindow;
+ const el = id => doc.getElementById(id);
+ check('four result panels', doc.querySelectorAll('.result-card').length === 4);
+ el('example').click();
+ check('example comparison', el('badge-both').textContent === '3' && el('badge-union').textContent === '7');
+ el('swap-lists').click(); check('swap lists', el('output-onlyA').value === 'Kiwi\nPear');
+ el('format').value = 'json'; el('format').dispatchEvent(new win.Event('change'));
+ check('format UI updates', JSON.parse(el('output-onlyA').value).length === 2);
+ el('list-a').value = '<img src=x onerror=alert(1)>'; el('list-a').dispatchEvent(new win.Event('input'));
+ check('input rendered as text', !doc.querySelector('.result-card img'));
+ el('clear-all').click(); check('clear resets results', el('badge-union').textContent === '0' && doc.querySelector('[data-action="copy"]').disabled);
+ check('desktop has no horizontal overflow', doc.documentElement.scrollWidth <= win.innerWidth);
+ frame.style.width = '375px';
+ requestAnimationFrame(() => requestAnimationFrame(() => { check('mobile has no horizontal overflow', doc.documentElement.scrollWidth <= win.innerWidth); finish(); }));
+ } catch (error) { checks.push('FAIL ' + error.stack); finish(); }
+});
+function finish() { document.getElementById('report').textContent = checks.join('\n') + '\n' + (checks.some(c => c.startsWith('FAIL')) ? 'FAILED' : 'ALL PASSED'); }
+</script></body></html>

@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f8fa">
+  <meta name="description" content="Compare two lists instantly. Find differences, shared items, and all unique items. Private, free, and entirely in your browser.">
+  <title>List diff — Compare two lists</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%237460db'/%3E%3Cpath d='M10 12h13M10 20h20M17 28h13' stroke='white' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="listdiff.css">
+  <script src="diff.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="lists" viewBox="0 0 24 24"><path d="M4 5h12M4 12h16M8 19h12"/></symbol>
+    <symbol id="shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6zM8 12l3 3 5-6"/></symbol>
+    <symbol id="swap" viewBox="0 0 24 24"><path d="M4 8h16l-4-4M20 16H4l4 4"/></symbol>
+    <symbol id="arrow" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></symbol>
+  </svg>
+  <header class="site-header">
+    <a class="brand" href="./"><span class="brand-mark"><svg><use href="#lists"/></svg></span>List diff<span class="brand-dot">.</span></a>
+    <span class="header-note"><span class="status-dot"></span>A little clarity between two lists</span>
+    <span class="privacy-badge"><svg><use href="#shield"/></svg>Comparisons run in your browser</span>
+  </header>
+  <main>
+    <section class="intro">
+      <div class="eyebrow">SIMPLE. PRECISE. IN YOUR BROWSER.</div>
+      <h1>Spot the <span>difference.</span></h1>
+      <p>Two lists. See what’s different, what’s shared, and everything in between.<br>Paste your items below. Results update as you type.</p>
+    </section>
+    <div class="workspace-toolbar"><span class="section-label">YOUR TWO LISTS</span><div class="actions"><button id="example" class="text-button">Try an example</button><button id="swap-lists" class="button secondary"><svg><use href="#swap"/></svg>Swap lists</button><button id="clear-all" class="button secondary">Clear all</button></div></div>
+    <div class="converter-grid inputs-grid">
+      <section class="card input-card" aria-labelledby="heading-a">
+        <div class="card-heading"><span class="feature-icon letter">A</span><div><h2 id="heading-a"><label for="list-a">List A</label></h2><p>Your first set of items.</p></div><button class="text-button upload" data-upload="a">Import file</button><input type="file" id="file-a" hidden accept=".txt,.csv,.tsv,.log,.md,text/*"></div>
+        <div class="editor"><textarea id="list-a" spellcheck="false" placeholder="Paste a list or drop a text file here…&#10;One item per line." aria-describedby="count-a"></textarea></div>
+        <div class="editor-footer"><span id="count-a">0 items · 0 duplicates</span><label>Split by <select id="split-a"><option value="lines">New line</option><option value="comma">Comma</option><option value="semicolon">Semicolon</option><option value="tab">Tab</option></select></label></div>
+      </section>
+      <section class="card input-card" aria-labelledby="heading-b">
+        <div class="card-heading"><span class="feature-icon letter">B</span><div><h2 id="heading-b"><label for="list-b">List B</label></h2><p>The list to compare it with.</p></div><button class="text-button upload" data-upload="b">Import file</button><input type="file" id="file-b" hidden accept=".txt,.csv,.tsv,.log,.md,text/*"></div>
+        <div class="editor"><textarea id="list-b" spellcheck="false" placeholder="Paste a list or drop a text file here…&#10;One item per line." aria-describedby="count-b"></textarea></div>
+        <div class="editor-footer"><span id="count-b">0 items · 0 duplicates</span><label>Split by <select id="split-b"><option value="lines">New line</option><option value="comma">Comma</option><option value="semicolon">Semicolon</option><option value="tab">Tab</option></select></label></div>
+      </section>
+    </div>
+    <section class="card options" aria-labelledby="options-heading">
+      <div class="options-heading"><h2 id="options-heading">Comparison options</h2><span class="small-tag">UPDATES INSTANTLY</span></div>
+      <div class="checkboxes"><label><input type="checkbox" id="case-sensitive" checked>Case sensitive</label><label><input type="checkbox" id="trim" checked>Trim leading / trailing spaces</label><label><input type="checkbox" id="spaces">Ignore extra spaces</label><label><input type="checkbox" id="zeros">Ignore leading zeros</label></div>
+      <div class="output-options"><label>Sort results<select id="sort"><option value="original">Original order</option><option value="az">A → Z</option><option value="za">Z → A</option><option value="numeric">Numeric ascending</option><option value="numeric-desc">Numeric descending</option></select></label><label>Output case<select id="output-case"><option value="original">Keep original</option><option value="lower">lowercase</option><option value="upper">UPPERCASE</option></select></label><label>Output format<select id="format"><option value="plain">One item per line</option><option value="json">JSON array</option><option value="csv">CSV row</option><option value="numbered">Numbered list</option><option value="markdown">Markdown bullets</option><option value="html">HTML list</option></select></label></div>
+    </section>
+    <div class="results-heading"><h2>Your comparison</h2><span id="summary" role="status">Add items above to get started.</span></div>
+    <div id="results" class="results-grid"></div>
+    <section class="learn-grid">
+      <article><span class="feature-icon"><svg><use href="#lists"/></svg></span><h2>A little set theory. A lot less work.</h2><p>Only in A and Only in B show the differences. In both is the intersection: items the lists share. All unique is the union: every distinct item across the two lists.</p><details><summary>How are duplicates and spaces handled?</summary><p>Results contain each matching item once. Empty items are skipped. Comparison options determine what counts as a match; results preserve the first original spelling, using List A’s version for shared items. Output case only changes the displayed results.</p></details></article>
+      <article><h2>From a spreadsheet, a file, or your clipboard.</h2><p>Paste a column from your spreadsheet, or import a text file up to 5 MB. Each line is one item by default. Comma, semicolon, and tab splitting treat separators literally, including inside quotes.</p><details><summary>Do my lists leave this browser?</summary><p>No. Your lists are processed on this page, with no uploads or storage. Reloading the page clears your data. Download results to keep a copy.</p></details></article>
+    </section>
+    <div class="privacy-note"><svg><use href="#shield"/></svg>No uploads. No accounts. Just the difference.</div>
+  </main>
+  <footer class="site-footer"><span>List diff · A simple tool for everyday work</span><span>Made for the details.</span></footer>
+  <div id="toast" class="toast" role="status" hidden></div>
+</body>
+</html>
